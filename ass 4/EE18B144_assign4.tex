@@ -1,0 +1,266 @@
+%
+% LaTeX report template
+%
+
+% This is a comment: in LaTeX everything that in a line comes
+% after a "%" symbol is treated as comment
+
+\documentclass[11pt, a4paper]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{listings}
+
+
+\title{Assignment No 4 - Fourier Approximations} % Title
+
+\author{Raghu Dinesh T} % Author name
+
+\date{\today} % Date for the report
+\begin{document}
+
+\maketitle % Insert the title, author and date
+\section{Abstract}
+%Create new section;it is autonumbered
+\begin{flushleft}
+The basic goal and outcome of this assignment could be understood as follows:\\\smallskip
+
+ a) We choose two functions f(x)=exp(x) and g(x) = cos(cos(x))\\\smallskip
+ b) The functions' values are approximated for x in the range 0 to 2pi  by calculating the first 51 fourier coefficients \\\smallskip
+ c) The fourier coefficients are calculated using two different methods and are then plotted in semilog and loglog axes for both the functions:\\
+         1)direct integration\\
+         2)least squares method\\\smallskip
+ d)We compare the coefficients obtained from both the methods are plot the error between them for both the functions\\\smallskip
+    -We finally find the functions's values at each point using the fourier coefficients obtained so that we get an estimate of how good the approximation of taking the first 50 fourier coefficents holds good\\
+
+
+\section{SubTasks}
+\subsection{SubTask 1 }
+    Python functions are written for exp(x) and cos(cos(x)) and plotted from x= -4pi to 2pi in fig(0) and fig(1) respectively\\\smallskip
+   -While cos(cos(x)) turns out to be periodic with a period of 2pi, exp(x) is not periodic.\\\smallskip
+    -Hence we define f(x) as exp(x\%2pi).It now  becomes a function of period 2pi and it's equal to exp(x) from 0 to 2pi.This is the expected function  using fourier approximation.This is also plotted in fig(0) \\\bigskip
+    \textbf{Code:}
+\begin{verbatim}
+
+def exp(x):
+	return pl.exp(x)
+def f(x):
+	return pl.cos(pl.cos(x))
+
+x=pl.linspace(-2*pl.pi,4*pl.pi,1000)
+
+pl.figure(1)
+pl.title("Actual")
+pl.semilogy(x,np.absolute(exp(x)))
+pl.xlabel("x")
+pl.ylabel("e^x")
+pl.grid()
+pl.title("Fourier")
+pl.semilogy(x,np.absolute(exp(x%(2*pl.pi))))
+pl.xlabel("x")
+pl.ylabel("e^x")
+pl.grid()
+
+
+pl.figure(2)
+pl.title("Actual")
+pl.plot(x,f(x))
+pl.xlabel("x")
+pl.ylabel("cos(cos(x))")
+pl.grid()
+pl.title("Fourier")
+pl.plot(x,f(x%(2*pl.pi)))
+pl.xlabel("x")
+pl.ylabel("cos(cos(x))")
+pl.grid()
+
+\end{verbatim}
+
+ \subsection{SubTask 2}
+ Finding the fourier coefficients using direct integration\\
+     \textbf{Code:}
+ \begin{verbatim}
+NOC=26
+
+e=[0];c=[0]
+
+e[0]=(0.5/pl.pi)*si.quad(exp,0,2*pl.pi)[0]
+c[0]=(0.5/pl.pi)*si.quad(f,0,2*pl.pi)[0]
+
+for k in range(1,NOC):
+	e.append((1/pl.pi)*si.quad(ue,0,2*pl.pi,args=(k))[0])
+	e.append((1/pl.pi)*si.quad(ve,0,2*pl.pi,args=(k))[0])
+	c.append((1/pl.pi)*si.quad(uc,0,2*pl.pi,args=(k))[0])
+	c.append((1/pl.pi)*si.quad(vc,0,2*pl.pi,args=(k))[0])
+
+n=range(1,NOC)
+ \end{verbatim}
+ \subsection{SubTask 3}
+Fourier coefficients are found out for both the funcions using the least square method
+ \\
+ \textbf{Code:}
+\begin{verbatim}
+x=np.linspace(0,2*pl.pi,401)
+x=x[:-1] # drop last term to have a proper periodic integral
+# f has been written to take a vector
+A=np.zeros((400,51))
+# allocate space for A
+A[:,0]=1
+# col 1 is all ones
+for k in range(1,26):
+	A[:,2*k-1]=pl.cos(k*x) # cos(kx) column
+	A[:,2*k]=pl.sin(k*x)
+# sin(kx) column
+#endfor
+c1=sl.lstsq(A,exp(x))[0]
+c2=sl.lstsq(A,f(x))[0]
+# the ’[0]’ is to pull out the
+# best fit vector. lstsq returns a list.
+
+\end{verbatim}
+ \subsection{SubTask 4}
+The coefficients obtained from both the methods are plotted in both semilog and loglog scales for both the functions
+ 
+ \textbf{Code:}
+\begin{verbatim}
+pl.figure(3)
+pl.semilogy(0,abs(e[0]),"ro")
+pl.semilogy(n,np.absolute(e[1:51:2]),"ro",label="fourier coefficients")
+pl.semilogy(n,np.absolute(e[2:51:2]),"ro")
+pl.title("Fourier coefficients of e^x vs n on semilog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+
+pl.figure(4)
+pl.loglog(n,np.absolute(e[1:51:2]),"ro",label="fourier coefficients")
+pl.loglog(n,np.absolute(e[2:51:2]),"ro")
+pl.title("Fourier coefficients of e^x vs n on loglog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+
+pl.figure(5)
+pl.semilogy(0,abs(c[0]),"ro")
+pl.semilogy(n,np.absolute(c[1:51:2]),"ro",label="fourier coefficients")
+pl.semilogy(n,np.absolute(c[2:51:2]),"ro")
+pl.title("Fourier coefficients of cos(cos(x)) vs n on semilog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+
+pl.figure(6)
+pl.loglog(n,np.absolute(c[1:51:2]),"ro",label="fourier coefficients")
+pl.loglog(n,np.absolute(c[2:51:2]),"ro")
+pl.title("Fourier coefficients of cos(cos(x)) vs n on loglog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+
+pl.figure(3)
+pl.semilogy(0,abs(c1[0]),"go")
+pl.semilogy(n,np.absolute(c1[1:51:2]),"go",label="least mean square coefficients")
+pl.semilogy(n,np.absolute(c1[2:51:2]),"go")
+pl.title("Fourier coefficients of e^x vs n on semilog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+pl.legend()
+
+pl.figure(4)
+pl.loglog(n,np.absolute(c1[1:51:2]),"go",label="least mean square coefficients")
+pl.loglog(n,np.absolute(c1[2:51:2]),"go")
+pl.title("Fourier coefficients of e^x vs n on loglog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+pl.legend()
+
+pl.figure(5)
+pl.semilogy(0,abs(c2[0]),"go")
+pl.semilogy(n,np.absolute(c2[1:51:2]),"go",label="least mean square coefficients")
+pl.semilogy(n,np.absolute(c2[2:51:2]),"go")
+pl.title("Fourier coefficients of cos(cos(x)) vs n on semilog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+pl.legend()
+
+pl.figure(6)
+pl.loglog(n,np.absolute(c2[1:51:2]),"go",label="least mean square coefficients")
+pl.loglog(n,np.absolute(c2[2:51:2]),"go")
+pl.title("Fourier coefficients of cos(cos(x)) vs n on loglog scale")
+pl.ylabel("Fourier coefficients")
+pl.xlabel("n")
+pl.legend()
+
+\end{verbatim}
+ \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.35]{Figure_3.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Fourier coefficients of f(x) in semilogy axis}
+  \label{fig:Figure_2}
+  \end{figure}
+  \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.35]{Figure_5.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Fourier coefficients of g(x) in semilogy axis}
+  \label{fig:Figure_3}
+  \end{figure}
+  \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.35]{Figure_4.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Fourier coefficients of f(x) in loglog axis}
+  \label{fig:Figure_4}
+  \end{figure}
+  \begin{figure}[h!]
+  \centering
+  \includegraphics[scale=0.35]{Figure_6.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Fourier coefficients of g(x) in loglog axis}
+  \label{fig:Figure_0}
+  \end{figure}
+
+
+ \subsection{SubTask 5}
+ The absolute errors between the coefficients obtained by both the methods are found out and the maximum error is printed. 
+ \textbf{Code:}
+\begin{verbatim}
+erre=np.absolute(c1-e)
+errf=np.absolute(c2-c)
+mde=np.amax(erre)
+mdf=np.amax(errf)
+\end{verbatim}
+
+  \subsection{SubTask 6}
+  Using the coefficents obtained from the least squares method,the value of f(x) and g(x) is found out for each value of x and plotted in the original figures:fig(0) and fig(1) where the functions were initially plotted
+  \\
+  \textbf{Code:}
+\begin{verbatim}
+f1=A.dot(c1)
+f2 =A.dot(c2)
+figure(0)
+semilogy(x,f1,'go')
+figure(1)
+semilogy(x,f2,'go')
+
+
+show()
+\end{verbatim}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.35]{Figure_1.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Plot of exp(x) along with approximated function using fourier series approximation}
+  \label{fig:Figure_0}
+  \end{figure}
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.35]{Figure_2.png}  % Mention the image name within the curly braces. Image should be in the same folder as the text file.
+  \caption{Plot of cos(cos(x)) along with approximated function using fourier series approximation}
+  \label{fig:Figure_1}
+\end{figure}
+ 
+ \section{Conclusion}
+ a) The bn coefficients obtained for g(x) are approximately 0 as it is an even function\\\smallskip
+ b) The coefficients for exp(x) decrease less quickly then for cos(cos(x)) because higher harmonics also have significant value for exp(x) while lower harmonics have the most significant values for cos(cos(x))\\\smallskip
+ c) The loglog plot for exp(x) looks linear, wheras the semilog plot in Figure 5 for cos(cos(x))linear.This is due to the corresponding behaviour of the fourier coefficients obtained analytically\\\smallskip
+ d) The max error between the fourier coefficients calculated using integration and least squares method for exp(x) is :  1.332730870335368\\\smallskip
+ e) The max error between the fourier coefficients calculated using integration and least squares method for cos(cosx) is :  2.5394379427569514e-15\\\smallskip
+ f) We observe that the values obtained using fourier series closely agree for cos(cos(x)) but not for exp(x).This is because higher fourier coefficients have significant magnitudes for exp(x) but not for cos(cos(x))\\\smallskip
+  g) For cos(cos(x)) the coefficients greater than 50 do not have significant magnitudes.
+
+
+ 
+ \end{flushleft}
+\end{document}
